@@ -45,7 +45,7 @@ public class ImageCropActivity extends Activity {
         widthOfscreen = dm.widthPixels;
         heightOfScreen = dm.heightPixels;
 
-        compositeImageView = (ImageView)findViewById(R.id.iv);
+        compositeImageView = (ImageView)findViewById(R.id.iv_image);
 
 
         Bitmap bitmap2 = BitmapFactory.decodeResource(getResources(), R.drawable.test3);
@@ -70,7 +70,7 @@ public class ImageCropActivity extends Activity {
         canvas.drawRect(CropView.minx-50, CropView.miny-50, CropView.maxx+50, CropView.maxy+50, paint);
 
         if (crop) {
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));   // 그림그릴때 먼저 그린거랑 나중에 그린거랑 합성. SRC_IN: 나중에 그린 이미지를 채워넣음
 
         } else {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
