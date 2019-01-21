@@ -1,17 +1,13 @@
 package com.example.qisens_n_hyunki.cropexample1;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.widget.ImageView;
 
 public class ImageCropActivity extends Activity {
@@ -34,7 +30,6 @@ public class ImageCropActivity extends Activity {
             canvasWidth = extras.getInt("width");
             canvasHeight = extras.getInt("height");
         }
-
 
         // 화면의 width, height을 구함
 //        int widthOfscreen = 0;
@@ -72,11 +67,10 @@ public class ImageCropActivity extends Activity {
         canvas.drawRect(CropView.minx-50, CropView.miny-50, CropView.maxx+50, CropView.maxy+50, paint);
 
         if (crop) {
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));   // 그림그릴때 먼저 그린거랑 나중에 그린거랑 합성. SRC_IN: 나중에 그린 이미지를 채워넣음
+            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));   // 선택한 영역 crop. SRC_IN: 나중에 그린 이미지를 채워넣음
 
         } else {
-//            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
-            finish();
+            finish();  // 취소 누르면 MainActivity로 돌아감
         }
 
         Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap2, canvasWidth, canvasHeight, true);  // 화면에 이미지 채워넣기위해 추가
