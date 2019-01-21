@@ -35,22 +35,24 @@ public class ImageCropActivity extends Activity {
             canvasHeight = extras.getInt("height");
         }
 
-        int widthOfscreen = 0;
-        int heightOfScreen = 0;
-        DisplayMetrics dm = new DisplayMetrics();
-        try {
-            getWindowManager().getDefaultDisplay().getMetrics(dm);
-        } catch (Exception ex) {
-        }
-        widthOfscreen = dm.widthPixels;
-        heightOfScreen = dm.heightPixels;
+
+        // 화면의 width, height을 구함
+//        int widthOfscreen = 0;
+//        int heightOfScreen = 0;
+//        DisplayMetrics dm = new DisplayMetrics();
+//        try {
+//            getWindowManager().getDefaultDisplay().getMetrics(dm);
+//        } catch (Exception ex) {
+//        }
+//        widthOfscreen = dm.widthPixels;
+//        heightOfScreen = dm.heightPixels;
 
         compositeImageView = (ImageView)findViewById(R.id.iv_image);
 
 
         Bitmap bitmap2 = BitmapFactory.decodeResource(getResources(), R.drawable.test3);
 
-        Bitmap resultingImage = Bitmap.createBitmap(widthOfscreen, heightOfScreen, bitmap2.getConfig());
+        Bitmap resultingImage = Bitmap.createBitmap(canvasWidth, canvasHeight, bitmap2.getConfig());
 
         Canvas canvas = new Canvas(resultingImage);
         Paint paint = new Paint();
@@ -73,7 +75,8 @@ public class ImageCropActivity extends Activity {
             paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));   // 그림그릴때 먼저 그린거랑 나중에 그린거랑 합성. SRC_IN: 나중에 그린 이미지를 채워넣음
 
         } else {
-            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
+//            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
+            finish();
         }
 
         Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap2, canvasWidth, canvasHeight, true);  // 화면에 이미지 채워넣기위해 추가

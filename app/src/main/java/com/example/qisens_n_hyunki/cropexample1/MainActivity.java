@@ -15,7 +15,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.widget.ImageView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -44,12 +44,15 @@ public class CropView extends View implements View.OnTouchListener {
     int canvasWidth;
     int canvasHeight;
 
-
     // 지정한 범위의 x, y의 min, max값
     public static float minx=0, miny=0, maxx=0, maxy=0;
 
     // 현재 좌표에서 바로 전의 좌표를 저장하기 위한 변수
     public static List<Point> previousPoint;
+
+    Path path = new Path();
+
+
 
 
     public CropView(Context c) {
@@ -61,12 +64,10 @@ public class CropView extends View implements View.OnTouchListener {
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);    // line의 계단 현상을 없애주어 부드럽게 해줌
         paint.setStyle(Paint.Style.STROKE);
-//        paint.setPathEffect(new DashPathEffect(new float[] { 10, 20 }, 0));   // 선 모양이 곡선이 아니라 점선으로 나옴
         paint.setStrokeCap(Paint.Cap.ROUND);         // line의 끝 부분을 둥글게 처리
         paint.setStrokeJoin(Paint.Join.ROUND);       // line이 만나는 부분을 둥글게 처리
-        paint.setStrokeWidth(100);                   // 선 굵기
-//        paint.setColor(Color.WHITE);
-        paint.setARGB(50,255,255,255);   // 흰색선인데 약간 투명하게
+        paint.setStrokeWidth(80);                   // 선 굵기
+        paint.setARGB(90,255,255,255);   // 흰색선인데 약간 투명하게
 
         this.setOnTouchListener(this);
         points = new ArrayList<Point>();
@@ -96,45 +97,30 @@ public class CropView extends View implements View.OnTouchListener {
 
     public void onDraw(Canvas canvas) {
         // 비트맵 이미지를 캔버스 크기에 꽉채워 넣기위해 추가 --------------------------------------------
-        int width = canvas.getWidth();
-        int height = canvas.getHeight();
-        canvasWidth = width;
-        canvasHeight = height;
-
+        canvasWidth = canvas.getWidth();
+        canvasHeight = canvas.getHeight();
 
         //------------------------------------------------------------------------------------------
-//        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.test3);
 
-        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, canvasWidth, canvasHeight, true);
         canvas.drawBitmap(resizeBitmap, 0, 0, null);
 
-        // imageView 위에 canvas 씌우기
-//        canvas.drawColor(Color.argb(150,255,255,255));
 
-
-        Path path = new Path();
         boolean first = true;
-
-        for (int i = 2; i < points.size(); i += 2) {
-            Point previousPoint = points.get(i-2);    //--------------------------------------------
+        for (int i = 0; i < points.size(); i += 1) {
             Point point = points.get(i);
-
             if (first) {
                 first = false;
-                path.moveTo(point.x, point.y);
+                path.moveTo(point.x, point.y);   // 기준점을 x, y로 이동시킴
             } else if (i < points.size() - 1) {
                 Point next = points.get(i + 1);
-                path.quadTo(point.x, point.y, next.x, next.y);
+                path.quadTo(point.x, point.y, next.x, next.y);   // 점 x1, y1에서 x2, y2로 곡선을 그림
             } else {
                 mlastpoint = points.get(i);
-                path.lineTo(point.x, point.y);
+                path.lineTo(point.x, point.y);   // path의 마지막에 경로 추가
             }
-
-            if (i+2 > points.size()) break;
-
-            canvas.drawLine(previousPoint.x, previousPoint.y, point.x,point.y, paint);   // drawPath보다 반응속도가 빠름. 근데 곡선으로 안그려짐
         }
-//        canvas.drawPath(path, paint);
+        canvas.drawPath(path, paint);
 
     }
 
@@ -181,7 +167,7 @@ public class CropView extends View implements View.OnTouchListener {
 
             mlastpoint = point;
             if (flgPathDraw) {
-                if (points.size() > 12) {
+                if (points.size() > 2) {   // 걍 떼면 거의 dialog 뜸
                     if (!comparePoint(mfirstpoint, mlastpoint)) {     // false
                         flgPathDraw = false;
                         points.add(mfirstpoint);
@@ -213,8 +199,7 @@ public class CropView extends View implements View.OnTouchListener {
         if ((left_range_x < first.x && first.x < right_range_x) && (left_range_y < first.y && first.y < right_range_y)) {  // first point하고 current point 차이가 작으면
             if (points.size() < 10) {  // 화면에 그려진게 별로 없으면(point가 10개 미만이면) crop 하지마셈
                 return false;
-            } else {                   // 그려진게 많으면(point가 10개 이상이면) crop 하셈
-                Log.d(TAG, String.valueOf(points.size()));
+            } else {                   // 그려진게 많으면(point가 10개 이상이면) crop 하셈 (여기 else문에 안들어가짐)
                 return true;
             }
         } else {
@@ -255,7 +240,7 @@ public class CropView extends View implements View.OnTouchListener {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage("Do you Want to save Crop or Non-crop image?")
                 .setPositiveButton("Crop", dialogClickListener)
-                .setNegativeButton("Non-crop", dialogClickListener).show()
+                .setNegativeButton("취소", dialogClickListener).show()
                 .setCancelable(false);
     }
 }
