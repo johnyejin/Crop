@@ -1,6 +1,7 @@
 package com.example.qisens_n_hyunki.cropexample1;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -15,8 +16,13 @@ public class ImageCropActivity extends Activity {
     boolean crop;
 
     // CropView에서 받아온 intent
+    int newWidth;
+    int newHeight;
     int canvasWidth;
     int canvasHeight;
+    int canvasLeft;
+    int canvasTop;
+
     String TAG = "ImageCropActivity";
 
     @Override
@@ -27,8 +33,12 @@ public class ImageCropActivity extends Activity {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             crop = extras.getBoolean("crop");
-            canvasWidth = extras.getInt("width");
-            canvasHeight = extras.getInt("height");
+            newWidth = extras.getInt("width");
+            newHeight = extras.getInt("height");
+            canvasWidth = extras.getInt("canvasWidth");
+            canvasHeight = extras.getInt("canvasHeight");
+            canvasLeft = extras.getInt("canvasLeft");
+            canvasTop = extras.getInt("canvasTop");
         }
 
         // 화면의 width, height을 구함
@@ -73,8 +83,25 @@ public class ImageCropActivity extends Activity {
             finish();  // 취소 누르면 MainActivity로 돌아감
         }
 
-        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap2, canvasWidth, canvasHeight, true);  // 화면에 이미지 채워넣기위해 추가
-        canvas.drawBitmap(resizeBitmap, 0, 0, paint);
+        if (CropView.configOrientation == true) {
+            Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap2, newWidth, newHeight, true);  // 화면에 이미지 채워넣기위해 추가
+            canvas.drawBitmap(resizeBitmap, 0, canvasTop, paint);
+        } else {
+            Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap2, newWidth, newHeight, true);  // 화면에 이미지 채워넣기위해 추가
+            canvas.drawBitmap(resizeBitmap, canvasLeft, 0, paint);
+        }
+
         compositeImageView.setImageBitmap(resultingImage);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+
+        if(config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            CropView.configOrientation = true;
+        } else {
+            CropView.configOrientation = false;
+        }
     }
 }

@@ -15,6 +15,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -44,9 +45,21 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
 
     String TAG = "CropView";
 
-    // canvas 크기 저장하는 변수 (ImageCropActivity에 intent로 넘겨줄꺼)
+    // canvas size (ImageCropActivity에 intent로 넘겨줄꺼)
     int canvasWidth;
     int canvasHeight;
+    // bitmap size
+    int bitmapWidth;
+    int bitmapHeight;
+    float rate;   // (bitmap / canvas)
+    // canvas 크기에 맞게 줄인 bitmap image size
+    int newWidth;
+    int newHeight;
+    // bitmap image 가운데 정렬을 위한 x, y값
+    int canvasLeft;
+    int canvasTop;
+    // portrait = true / landscape = false
+    public static boolean configOrientation = true;
 
     // 지정한 범위의 x, y의 min, max값
     public static float minx=0, miny=0, maxx=0, maxy=0;
@@ -56,11 +69,10 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
 
     Path path = new Path();
 
-    // ---------------------------------------------------------------------------------------------
+    // 쓰레드 변수
     SurfaceHolder mHolder;
     DrawThread mThread;
     final static int DELAY = 50;
-    // ---------------------------------------------------------------------------------------------
 
     public CropView(Context c) {
         super(c);
@@ -85,6 +97,10 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
         mHolder = getHolder();
         mHolder.addCallback(this);   // 시스템이 표면의 변화가 발생할 때마다 콜백 메서드 호출
         // ---------------------------------------------------------------------------------------------
+
+        bitmapWidth = bitmap.getWidth();
+        bitmapHeight = bitmap.getHeight();
+        Log.d(TAG, String.valueOf(bitmapWidth) +" / " + String.valueOf(bitmapHeight));
     }
 
 
@@ -93,7 +109,6 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
         Point point = new Point();
         point.x = (int) event.getX();
         point.y = (int) event.getY();
-        Log.i(TAG,"touch");
 
         if (flgPathDraw) {
 
@@ -171,15 +186,34 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
                     canvas = mHolder.lockCanvas();
                     if (canvas == null) break;
 
-                    // 여기에 onDraw 내용이 들어가야함
-                    // 비트맵 이미지를 캔버스 크기에 꽉채워 넣기위해 추가 --------------------------------------------
+                    // 여기에 onDraw() 내용이 들어가야함
+                    // 비트맵 이미지를 canvas 크기에 맞게 축소 --------------------------------------------
                     canvasWidth = canvas.getWidth();
                     canvasHeight = canvas.getHeight();
+
+                    if (configOrientation == true) {
+                        rate = (float) canvasWidth / (float) bitmapWidth;
+
+                        newWidth = (int) (bitmapWidth * rate);
+                        newHeight = (int) (bitmapHeight * rate);
+
+                        canvasTop = (canvasHeight - newHeight) / 2;
+
+                        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+                        canvas.drawBitmap(resizeBitmap, 0, canvasTop, null);
+                    }
+                    else {
+                        rate = (float) canvasHeight / (float) bitmapHeight;
+
+                        newWidth = (int) (bitmapWidth * rate);
+                        newHeight = (int) (bitmapHeight * rate);
+
+                        canvasLeft = (canvasWidth - newWidth) / 2;
+
+                        Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+                        canvas.drawBitmap(resizeBitmap, canvasLeft, 0, null);
+                    }
                     //------------------------------------------------------------------------------------------
-
-                    Bitmap resizeBitmap = Bitmap.createScaledBitmap(bitmap, canvasWidth, canvasHeight, true);
-                    canvas.drawBitmap(resizeBitmap, 0, 0, null);
-
 
                     boolean first = true;
                     for (int i = 0; i < points.size(); i += 1) {
@@ -203,6 +237,17 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
 
                 try {Thread.sleep(CropView.DELAY);} catch(Exception e){}
             }
+        }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration config) {
+        super.onConfigurationChanged(config);
+
+        if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            configOrientation = true;
+        } else if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            configOrientation = false;
         }
     }
 
@@ -234,7 +279,6 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
     }
-    // ---------------------------------------------------------------------------------------------
 
 
     private boolean comparePoint(Point first, Point current) {
@@ -272,8 +316,12 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
 
                         intent = new Intent(mContext, ImageCropActivity.class);
                         intent.putExtra("crop", true);
-                        intent.putExtra("width", canvasWidth);   // 추가
-                        intent.putExtra("height", canvasHeight); // 추가
+                        intent.putExtra("width", newWidth);   // 추가
+                        intent.putExtra("height", newHeight); // 추가
+                        intent.putExtra("canvasWidth", canvasWidth);
+                        intent.putExtra("canvasHeight", canvasHeight);
+                        intent.putExtra("canvasLeft", canvasLeft);
+                        intent.putExtra("canvasTop", canvasTop);
                         mContext.startActivity(intent);
                         break;
 
@@ -281,8 +329,8 @@ public class CropView extends SurfaceView implements SurfaceHolder.Callback {
 
                         intent = new Intent(mContext, ImageCropActivity.class);
                         intent.putExtra("crop", false);
-                        intent.putExtra("width", canvasWidth);   // 추가
-                        intent.putExtra("height", canvasHeight); // 추가
+                        intent.putExtra("width", newWidth);   // 추가
+                        intent.putExtra("height", newHeight); // 추가
                         mContext.startActivity(intent);
 
                         bfirstpoint = false;

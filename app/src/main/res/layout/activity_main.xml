@@ -6,10 +6,4 @@
     tools:context=".MainActivity"
     android:id="@+id/cl_main">
 
-    <ImageView
-        android:id="@+id/iv_main"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/test3"/>
-
 </android.support.constraint.ConstraintLayout>
